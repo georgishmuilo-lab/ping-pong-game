@@ -1,0 +1,75 @@
+from pygame import *
+
+back = (150, 255, 100)
+win_height = 600
+win_width = 800
+win = display.set_mode((win_width, win_height))
+win.fill(back)
+
+clock = time.Clock()
+fps = 60
+game = True
+
+
+
+class GameSprite(sprite.Sprite):
+    def __init__(self, hero, x, y, speed, width=50, height=50, kup=None, kdown=None):
+        super().__init__()
+        self.image = transform.scale(image.load(hero), (width, height))
+        self.speed = speed
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.hit = False
+        self.hp = 2
+        self.kup = kup
+        self.kdown = kdown
+        self.yspeed = speed
+        self.width = width
+        self.height = height
+    def reset(self):
+        win.blit(self.image, (self.rect.x, self.rect.y))
+
+class Player(GameSprite):
+    def update(self):
+        keys_pressed = key.get_pressed()
+        if keys_pressed[self.kup] and self.rect.y > 0:
+            self.rect.y -= self.speed
+        if keys_pressed[self.kdown] and self.rect.y < 650:
+            self.rect.y += self.speed
+
+class Ball(GameSprite):
+    def update(self):
+        self.rect.x += self.speed
+        self.rect.y += self.yspeed
+        if self.rect.y < 0 or self.rect.y >= win_height - self.height:
+            self.yspeed *= -1
+        if self.rect.x < 0 or self.rect.x >= win_width - self.width:
+            self.rect.x = 375
+            self.rect.y = 275
+        if sprite.collide_rect(ball, player1) or sprite.collide_rect(ball, player2):
+            self.speed *= -1
+
+player1 = Player('player.png', 50, 250, 10, 50, 100, K_w, K_s)
+player2 = Player('player.png', 700, 250, 10, 50, 100, K_UP, K_DOWN)
+ball = Ball('ball.png', 375, 275, 5)
+
+
+
+
+while game == True:
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+    win.fill(back)
+
+    player1.update()
+    player1.reset()
+    player2.update()
+    player2.reset()
+    ball.update()
+    ball.reset()
+
+
+    display.update()
+    clock.tick(fps)
